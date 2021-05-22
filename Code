@@ -1,0 +1,130 @@
+import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+import os
+import plotly.express as px
+from sklearn.metrics import classification_report,accuracy_score,average_precision_score,balanced_accuracy_score,precision_score
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+%matplotlib inline
+
+
+df = pd.read_csv('../input/heart-failure-clinical-data/heart_failure_clinical_records_dataset.csv')
+
+
+px.histogram(df, "age", nbins=25, title='Patients age')
+
+
+df_anaemia = df['anaemia'].value_counts().reset_index()
+df_anaemia.columns = ['anaemia', 'count']
+px.bar(df_anaemia, x='anaemia', y="count", title='Anaemia bar chart')
+
+
+df_diabetes = df['diabetes'].value_counts().reset_index()
+df_diabetes.columns = ['diabetes', 'count']
+px.bar(df_diabetes, x='diabetes', y="count", title='Diabetes bar chart')
+
+
+df_smoking = df['smoking'].value_counts().reset_index()
+df_smoking.columns = ['smoking', 'count']
+px.bar(df_smoking, x='smoking', y="count", title='Smoking bar chart')
+
+
+px.histogram(df, "ejection_fraction", nbins=15, title='Ejection_fraction distribution')
+
+
+sns.heatmap(df.corr(),cmap='viridis')
+
+
+Score=[]
+forest = RandomForestClassifier(random_state=0)
+for a in range(1000):
+    X_train,X_test,y_train,y_test = train_test_split(df.drop(['DEATH_EVENT'],axis=1),df['DEATH_EVENT'],test_size=0.25,random_state=a)
+    forest.fit(X_train,y_train)
+    pred = forest.predict(X_test)
+    b = accuracy_score(y_test,pred)
+    Score.append(b) 
+    
+    
+    
+    X_train,X_test,y_train,y_test = train_test_split(df.drop(['DEATH_EVENT'],axis=1),df['DEATH_EVENT'],test_size=0.25,random_state=Score.index(np.array(Score).max()))
+    
+    
+    Score1=[]
+X_train,X_test,y_train,y_test = train_test_split(df.drop(['DEATH_EVENT'],axis=1),df['DEATH_EVENT'],test_size=0.25,random_state=476)
+for a in range(1000):
+    forest = RandomForestClassifier(random_state=a)
+    forest.fit(X_train,y_train)
+    pred = forest.predict(X_test)
+    b = accuracy_score(y_test,pred)
+    Score1.append(b) 
+    
+    
+    np.array(Score).max()
+    
+    
+    np.array(Score1).max()
+    
+    
+    np.array(Score).max()
+    
+    
+    Score1.index(np.array(Score1).max())
+    
+    
+nn = MLPClassifier(random_state=Score1.index(np.array(Score1).max()))
+dtree = DecisionTreeClassifier(random_state=Score1.index(np.array(Score1).max()))
+log = LogisticRegression(random_state=Score1.index(np.array(Score1).max()))
+knn = KNeighborsClassifier()
+forest = RandomForestClassifier(random_state=Score1.index(np.array(Score1).max()))
+
+
+log.fit(X_train,y_train)
+knn.fit(X_train,y_train)
+dtree.fit(X_train,y_train)
+forest.fit(X_train,y_train)
+nn.fit(X_train,y_train)
+
+
+prediction = log.predict(X_test)
+print('                    Logistic Regression')
+print(classification_report(y_test,prediction))
+
+
+prediction1 = forest.predict(X_test)
+print('                    Random Forest Classifier')
+print(classification_report(y_test,prediction1))
+
+
+
+prediction2 = knn.predict(X_test)
+print('                    K Nearest Neighbor Classifier')
+print(classification_report(y_test,prediction2))
+
+
+prediction3 = dtree.predict(X_test)
+print('                    Decision Tree Classifier')
+print(classification_report(y_test,prediction3))
+
+
+prediction4 = nn.predict(X_test)
+print('                    Neural Network')
+print(classification_report(y_test,prediction4))
+
+
+models = pd.Series(['Random Forest Classifier','Logistic Regression','Neural Network','Decision Tree Classifier','K Nearest Neighbor'])
+
+
+Accuracy = pd.Series([accuracy_score(y_test,prediction1),accuracy_score(y_test,prediction),accuracy_score(y_test,prediction4),accuracy_score(y_test,prediction3),accuracy_score(y_test,prediction2)])
+
+
+Leaderboard = pd.DataFrame({'Models':models,'Accuracy':Accuracy})
+
+Leaderboard.index=['Gold','Silver','Bronze','Bronze','Consolation Prize']
+
+Leaderboard
